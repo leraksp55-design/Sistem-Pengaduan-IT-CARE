@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Laporan Masuk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+    
+    <main class="main-content">
+        <h1 class="page-title">Verification Laporan Masuk</h1>
+
+    <div class="card">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Header Info -->
+            <div class="info-header">
+                <div class="info-details">
+                    <p><strong>Pelapor:</strong> {{ laporan.pelapor }}</p>
+                    <p><strong>Nomor Pelacakan:</strong> SIP-2024-08765</p>
+                    <p><strong>Tanggal Pengajuan:</strong> {{ laporan.created_at.strftime('%d %b %Y') if laporan.created_at else '-' }}</p>
+                </div>
+                <div class="badge-status">
+                    {{ laporan.status }}
+                </div>
+            </div>
+
+            <!-- Evidence & Map -->
+            <div class="evidence-grid">
+                <div class="evidence-images">
+
+        {% if laporan.attachment %}
+             <img src="{{ url_for('static', filename=laporan.attachment) }}"
+             alt="Bukti Pengaduan" class="attachment-preview">
+        {% else %}
+             <p>Tidak ada gambar bukti</p>
+        {% endif %}
+
+            </div>
+                <div class="map-placeholder">
+                    <div class="map-lines"></div>
+                    <div class="map-pin">📍</div>
+                </div>
+            </div>
+
+            {% if laporan.bukti_penyelesaian %}
+            <div class="proof-section">
+                <h4>Bukti Penyelesaian</h4>
+                {% set bukti_url = url_for('static', filename='uploads/bukti/' + laporan.bukti_penyelesaian) %}
+                {% if laporan.bukti_penyelesaian.lower().endswith('.pdf') %}
+                    <a href="{{ bukti_url }}" target="_blank" class="proof-link">Lihat Bukti Penyelesaian (PDF)</a>
+                {% else %}
+                    <img src="{{ bukti_url }}" alt="Bukti Penyelesaian" class="attachment-preview proof-preview">
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Form Update -->
+            <div class="form-section">
+                <div class="section-title">Update Penanganan</div>
+
+                <!-- Status Selector -->
+                <div class="form-group">
+                    <label>Status Baru</label>
+                    <div class="status-box">
+                        <select name="status_baru">
+
+    <option value="pending"
+        {% if laporan.status == 'pending' %}selected{% endif %}>
+        Pending
+    </option>
+
+    <!-- <option value="Sedang Diproses"
+        {% if laporan.status == 'Sedang Diproses' %}selected{% endif %}>
+        Sedang Diproses
+    </option> -->
+
+    <option value="Selesai"
+        {% if laporan.status == 'Selesai' %}selected{% endif %}>
+        Selesai
+    </option>
+
+    <!-- <option value="Ditolak"
+        {% if laporan.status == 'Ditolak' %}selected{% endif %}>
+        Ditolak
+    </option> -->
+
+</select>
+                    </div>
+                </div>
+
+                <!-- Progress Slider (Visual Only) -->
+                <div class="form-group">
+                    <div class="progress-container">
+                        <span class="progress-text">0%</span>
+                        <div class="progress-fill" style="width: 50%;">
+                            <div class="progress-handle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catatan Progress -->
+                <div class="form-group">
+                    <label>Catatan Progress</label>
+                    <textarea name="catatan_progress" rows="2" placeholder="Tulis catatan di sini...">{{ laporan.catatan_petugas or '' }}</textarea>
+                </div>
+
+                <!-- Upload & Toggle -->
+                <div class="bottom-row">
+                    <div class="upload-container">
+                        <label>Bukti Penyelesaian</label>
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <span class="upload-icon">☁️</span>
+                            <span class="upload-text">Seret & lepas file di sini atau klik untuk diunggah</span>
+                            <input type="file" id="fileInput" name="bukti_file" style="display:none">
+                        </div>
+                    </div>
+                    
+                    <div class="toggle-container">
+                        <span>Kirim notifikasi email</span>
+                        <label class="switch">
+                            <input type="checkbox" name="kirim_notifikasi" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="history.back()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Update</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Script sederhana untuk menampilkan nama file saat dipilih
+        document.getElementById('fileInput').addEventListener('change', function() {
+            if(this.files && this.files.length > 0) {
+                document.querySelector('.upload-text').textContent = 'File terpilih: ' + this.files[0].name;
+            }
+        });
+    </script>
+    </main>
+</body>
+</html>

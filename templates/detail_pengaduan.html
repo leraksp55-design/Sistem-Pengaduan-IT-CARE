@@ -1,0 +1,127 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Detail Pengaduan | IT CARE{% endblock %}
+{% block active_page %}pengaduan_saya{% endblock %}
+{% block page_title %}Detail Pengaduan{% endblock %}
+
+{% block content %}
+
+<div class="content-card detail-card">
+
+    <div class="detail-header">
+        <h2>Detail Pengaduan</h2>
+
+        <a href="{{ url_for('pengaduan_saya') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i>
+            Kembali
+        </a>
+    </div>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>ID Pengaduan</label>
+            <p class="complaint-code">
+        TIK-{{ '%04d'|format(pengaduan.id) }}
+         </p>
+        </div>
+
+        <div class="detail-item">
+            <label>Judul</label>
+            <p>{{ pengaduan.judul }}</p>
+        </div>
+
+        <div class="detail-item full-width">
+            <label>Deskripsi</label>
+            <p>{{ pengaduan.deskripsi }}</p>
+        </div>
+
+        <div class="detail-item">
+            <label>Lokasi</label>
+            <p>{{ pengaduan.lokasi }}</p>
+        </div>
+
+        <div class="detail-item">
+            <label>Status</label>
+
+            <span class="badge
+            {% if pengaduan.status == 'pending' %}
+                badge-blue
+            {% elif pengaduan.status == 'Sedang Diproses' %}
+                badge-warning
+            {% elif pengaduan.status == 'Selesai' %}
+                badge-green
+            {% else %}
+                badge-red
+            {% endif %}
+            ">
+
+            {% if pengaduan.status == 'pending' %}
+                Menunggu Verifikasi
+            {% else %}
+                {{ pengaduan.status }}
+            {% endif %}
+
+            </span>
+
+        </div>
+
+        <div class="detail-item">
+            <label>Pelapor</label>
+
+            <p>
+
+            {% if pengaduan.anonim == 1 %}
+                <span class="anonim-badge">
+                    <i class="fas fa-user-secret"></i>
+                    Anonim
+                </span>
+            {% else %}
+                {{ pengaduan.nama_lengkap }} ({{ pengaduan.username }})
+            {% endif %}
+
+            </p>
+
+        </div>
+
+        {% if pengaduan.no_hp and pengaduan.anonim == 0 %}
+
+        <div class="detail-item">
+            <label>No HP</label>
+            <p>{{ pengaduan.no_hp }}</p>
+        </div>
+
+        {% endif %}
+
+        <div class="detail-item">
+            <label>Tanggal Dibuat</label>
+            <p>{{ pengaduan.created_at.strftime('%d %B %Y, %H:%M') }}</p>
+        </div>
+
+        <div class="detail-item">
+            <label>Terakhir Diupdate</label>
+            <p>{{ pengaduan.updated_at.strftime('%d %B %Y, %H:%M') }}</p>
+        </div>
+
+    </div>
+
+    <div class="detail-actions">
+
+        <a href="{{ url_for('pengaduan_saya') }}" class="btn btn-outline">
+            Batal
+        </a>
+
+        <a href="{{ url_for('hapus_pengaduan', id=pengaduan.id) }}"
+           class="btn btn-danger"
+           onclick="return confirm('Yakin ingin menghapus pengaduan ini?')">
+
+            <i class="fas fa-trash"></i>
+            Hapus
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

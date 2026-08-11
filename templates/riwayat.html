@@ -1,0 +1,93 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Riwayat Pengaduan - IT CARE{% endblock %}
+{% block active_page %}riwayat{% endblock %}
+{% block page_title %}Riwayat Pengaduan{% endblock %}
+
+{% block content %}
+<div class="riwayat-header">
+    <a href="{{ url_for('export_riwayat_excel') }}" class="btn-ekspor">
+    <i class="fas fa-file-excel"></i> Ekspor Excel
+</a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid-riwayat">
+    <div class="stat-card-riwayat stat-total">
+        <div class="stat-label">Total Pengaduan</div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card-riwayat stat-selesai">
+        <div class="stat-label">Selesai</div>
+        <div class="stat-value">{{ stats.selesai }}</div>
+    </div>
+    <div class="stat-card-riwayat stat-belum">
+        <div class="stat-label">Belum Selesai</div>
+        <div class="stat-value">{{ stats.belum_selesai }}</div>
+    </div>
+    <div class="stat-card-riwayat stat-avg">
+        <div class="stat-label">Rata-rata Waktu Penyelesaian</div>
+        <div class="stat-value">{{ stats.avg_time }}</div>
+        <div class="stat-sublabel">Hari</div>
+    </div>
+</div>
+
+<div class="riwayat-content">
+    <div class="timeline-section">
+        {% for item in riwayat_list %}
+        <div class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+               <div class="complaint-id">TIK-{{ '%04d'|format(item.id) }}</div>
+                <div class="complaint-desc">{{ item.judul[:60] }}...</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-data">
+            <i class="fas fa-inbox"></i>
+            <p>Belum ada riwayat pengaduan yang tersedia.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="complaint-details">
+        {% for item in riwayat_list %}
+        <div class="complaint-card">
+            <div class="complaint-header">
+                <h3>{{ item.judul }}</h3>
+                <span class="badge {% if item.status|lower == 'selesai' %}badge-success{% else %}badge-warning{% endif %}">
+                    {{ item.status }}
+                </span>
+            </div>
+            <div class="complaint-code">TIK-{{ '%04d'|format(item.id) }}</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill {% if item.status|lower == 'selesai' %}progress-complete{% else %}progress-pending{% endif %}"></div>
+                </div>
+            </div>
+
+            <div class="complaint-actions">
+                {% if item.status|lower == 'selesai' %}
+                <button class="btn-status btn-selesai">Selesai</button>
+               <a href="{{ url_for('download_riwayat_pdf', id=item.id) }}" class="btn-pdf">
+                <i class="fas fa-download"></i> Unduh PDF
+            </a>
+                {% else %}
+                <button class="btn-status btn-proses">Dalam Proses</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function downloadPDF(id) {
+        alert('Mengunduh PDF untuk pengaduan #' + id);
+        // window.open('/download-pdf/' + id, '_blank');
+    }
+</script>
+{% endblock %}

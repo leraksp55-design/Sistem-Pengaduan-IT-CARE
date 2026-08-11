@@ -1,0 +1,214 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+Dashboard - IT CARE
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dashboard-wrapper dashboard-content">
+<!-- Welcome -->
+<div class="welcome-section">
+
+    <div class="welcome-left">
+        <h2>Selamat Datang, {{ user_nama }}</h2>
+        <p>Kelola dan pantau pengaduan layanan IT dengan mudah.</p>
+    </div>
+
+    <div class="welcome-right">
+        <i class="fas fa-circle-user"></i>
+        <span>{{ user_nama }}</span>
+    </div>
+
+</div>
+
+
+<!-- Statistik -->
+<div class="stats-container">
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Total Pengaduan</span>
+            <i class="fas fa-ticket"></i>
+        </div>
+
+        <div class="stat-number">
+            {{ stats.total_complaint }}
+        </div>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Sedang Diproses</span>
+            <i class="fas fa-spinner"></i>
+        </div>
+
+        <div class="stat-number">
+            {{ stats.dalam_proses }}
+        </div>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Selesai</span>
+            <i class="fas fa-check-circle"></i>
+        </div>
+
+        <div class="stat-number">
+            {{ stats.selesai }}
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- Menu Cepat -->
+<div class="quick-menu">
+
+
+    <a href="{{ url_for('form_pengaduan') }}" class="quick-card">
+
+        <i class="fas fa-plus-circle"></i>
+
+        <h4>
+            Buat Pengaduan
+        </h4>
+
+        <p>
+            Laporkan masalah IT baru
+        </p>
+
+    </a>
+
+
+
+    <a href="{{ url_for('pengaduan_saya') }}" class="quick-card">
+
+        <i class="fas fa-ticket-alt"></i>
+
+        <h4>
+            Tiket Saya
+        </h4>
+
+        <p>
+            Lihat status pengaduan
+        </p>
+
+    </a>
+
+
+
+    <a href="{{ url_for('riwayat') }}" class="quick-card">
+
+        <i class="fas fa-history"></i>
+
+        <h4>
+            Riwayat
+        </h4>
+
+        <p>
+            Lihat pengaduan sebelumnya
+        </p>
+
+    </a>
+
+
+</div>
+
+
+
+
+<!-- Pengaduan Terbaru -->
+
+<div class="table-section">
+
+    <h3>
+        Pengaduan Terbaru
+    </h3>
+
+
+    <table class="data-table">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Judul</th>
+                <th>Status</th>
+                <th>Tanggal</th>
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+        {% for item in pengaduan_list %}
+
+            <tr>
+
+                <td>
+                   TIK-{{ '%04d'|format(item.id_complaint) }}
+                </td>
+
+
+                <td>
+                    {{ item.title }}
+                </td>
+
+
+                <td>
+
+                    <span class="status-badge 
+                    {% if item.status == 'Selesai' %}
+                        status-done
+                    {% elif item.status == 'Sedang Diproses' %}
+                        status-process
+                    {% else %}
+                        status-waiting
+                    {% endif %}
+                    ">
+
+                    {{ item.status }}
+
+                    </span>
+
+                </td>
+
+
+                <td>
+                    {{ item.created_at.strftime('%d-%m-%Y') }}
+                </td>
+
+
+            </tr>
+
+
+        {% else %}
+
+            <tr>
+
+                <td colspan="4" style="text-align:center;padding:30px">
+
+                    Belum ada pengaduan
+
+                </td>
+
+            </tr>
+
+
+        {% endfor %}
+
+
+        </tbody>
+
+
+    </table>
+
+
+</div>
+</div>
+
+{% endblock %}

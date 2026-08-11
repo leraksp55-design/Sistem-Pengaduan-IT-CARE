@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pengaduan - IT CARE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <aside class="col-md-2 sidebar">
+                <div class="sidebar-header">
+            <div class="logo-icon">
+    <svg width="70" height="70" viewBox="0 0 80 80" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Shield Maroon -->
+        <path d="M40 5L15 17.5V35C15 52.5 25.5 67.5 40 72.5C54.5 67.5 65 52.5 65 35V17.5L40 5Z"
+              stroke="#8E1F2F"
+              stroke-width="3"
+              fill="none"/>
+
+        <!-- Kotak Tengah Maroon -->
+        <rect x="25" y="25"
+              width="30"
+              height="22"
+              rx="3"
+              fill="#8E1F2F"/>
+
+        <!-- Centang Hijau -->
+        <path d="M32 36L37 41L48 30"
+              stroke="#2E7D32"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+
+        <!-- Titik Maroon -->
+        <circle cx="32" cy="58"
+                r="4"
+                fill="#8E1F2F"/>
+
+        <!-- Titik Gold -->
+        <circle cx="40" cy="56"
+                r="5"
+                fill="#D4AF37"/>
+
+        <!-- Titik Maroon -->
+        <circle cx="48" cy="58"
+                r="4"
+                fill="#8E1F2F"/>
+
+    </svg>
+    </div>
+
+            <h3>IT CARE</h3>
+            <p class="logo-subtitle">Portal Petugas</p>
+        </div>
+                <nav class="sidebar-nav">
+
+            <a href="{{ url_for('dashboard_petugas') }}" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('verification_laporan_list') }}" class="nav-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Verifikasi</span>
+            </a>
+
+            <a href="{{ url_for('daftar_pengaduan_petugas') }}" class="nav-item active">
+                <i class="fas fa-folder-open"></i>
+                <span>Semua Pengaduan</span>
+            </a>
+
+            <a href="{{ url_for('logout') }}" class="nav-item nav-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+
+</nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="col-md-10 main-content">
+                <div class="content-wrapper">                 
+                <div class="page-header">
+                    <h1><i class="fas fa-folder-open"></i> Detail Pengaduan</h1>
+                </div>
+                <div class="back-wrapper">
+                    <a href="{{ url_for('daftar_pengaduan_petugas') }}" class="btn-back-new">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Kembali</span>
+                    </a>
+                </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="detail-container">
+                        <!-- Left Side - Complaint Info -->
+                        <div class="complaint-info">
+                            <div class="petugas-complaint-header">
+                                <div class="complaint-id">{{ pengaduan.id }}-{{ pengaduan.created_at.strftime('%Y') }}</div>
+                                <span class="badge badge-{{ 'success' if pengaduan.status == 'Selesai' else 'warning' if 'Proses' in pengaduan.status else 'danger' if pengaduan.status == 'Ditolak' else 'info' }}">
+                                    {{ pengaduan.status }}
+                                </span>
+                            </div>
+
+                           <h2 class="petugas-complaint-title">{{ pengaduan.judul }}</h2>
+                            
+                            <div class="petugas-complaint-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-tag"></i> Kategori: {{ pengaduan.kategori }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-flag"></i> Prioritas: 
+                                    <span class="prioritas-{{ (pengaduan.prioritas or 'Tidak Ada')|lower|replace(' ', '-') }}">
+                                    {{ pengaduan.prioritas or 'Tidak Ada' }}
+                                </span>
+                                </span>
+                            </div>
+
+                            <div class="petugas-description">
+                                <h4>Deskripsi:</h4>
+                                <p>{{ pengaduan.deskripsi }}</p>
+                            </div>
+
+                            {% if pengaduan.lokasi %}
+                            <div class="petugas-location">
+                                <h4><i class="fas fa-map-marker-alt"></i> Lokasi:</h4>
+                                <p>{{ pengaduan.lokasi }}</p>
+                            </div>
+                            {% endif %}
+
+                            <div class="petugas-reporter">
+                                <h4>Pelapor:</h4>
+                                <p><strong>{{ pengaduan.nama_lengkap or pengaduan.username }}</strong></p>
+                                {% if pengaduan.no_hp %}
+                                <p><i class="fas fa-phone"></i> {{ pengaduan.no_hp }}</p>
+                                {% endif %}
+                                <p><i class="fas fa-calendar"></i> {{ pengaduan.created_at.strftime('%d %B %Y, %H:%M WIB') }}</p>
+                            </div>
+
+                            <!-- Foto Bukti -->
+                            <div class="complaint-photos">
+                                <h4>Foto Bukti:</h4>
+
+                                <div class="photo-grid">
+                                    {% if pengaduan.attachment %}
+                                        <img src="{{ url_for('static', filename=pengaduan.attachment) }}"
+                                            alt="Foto Bukti"
+                                            class="photo-item">
+                                    {% else %}
+                                        <p>Tidak ada foto bukti.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Map (jika ada koordinat) -->
+                            {% if pengaduan.latitude and pengaduan.longitude %}
+                            <div class="complaint-map">
+                                <h4>Peta Lokasi:</h4>
+                                <div class="map-container">
+                                    <iframe 
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d{{ pengaduan.longitude }}!3d{{ pengaduan.latitude }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMDAnMDAuMCJTIDEwNsKwMDAnMDAuMCJF!5e0!3m2!1sen!2sid!4v1234567890"
+                                        width="100%" 
+                                        height="250" 
+                                        style="border:0; border-radius: 10px;" 
+                                        allowfullscreen="" 
+                                        loading="lazy">
+                                    </iframe>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Right Side - Action Form -->
+                        <div class="action-panel">
+                            <form action="{{ url_for('update_status_pengaduan', id=pengaduan.id) }}" method="POST">
+                                <h3>Tindak Lanjuti Pengaduan</h3>
+
+                                <!-- Status Radio Buttons -->
+                                <div class="form-group">
+                                    <label class="form-label">Status Tindak Lanjut:</label>
+                                    <div class="radio-group">
+                                        <label class="radio-option">
+                                            <input type="radio" name="status" value="Diterima" {% if pengaduan.status == 'Diterima' %}checked{% endif %}>
+                                            <span>Terima</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="status" value="Ditolak" {% if pengaduan.status == 'Ditolak' %}checked{% endif %}>
+                                            <span>Tolak</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="status" value="Minta Klarifikasi" {% if pengaduan.status == 'Minta Klarifikasi' %}checked{% endif %}>
+                                            <span>Minta Klarifikasi</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Prioritas -->
+                                <div class="form-group">
+                                    <label class="form-label">Prioritas:</label>
+                                    <div class="radio-group-vertical">
+                                        <label class="radio-option">
+                                            <input type="radio" name="prioritas" value="Tinggi" {% if pengaduan.prioritas == 'Tinggi' %}checked{% endif %}>
+                                            <span>Tinggi</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="prioritas" value="Sedang" {% if pengaduan.prioritas == 'Sedang' %}checked{% endif %}>
+                                            <span>Sedang</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="prioritas" value="Rendah" {% if pengaduan.prioritas == 'Rendah' %}checked{% endif %}>
+                                            <span>Rendah</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Assign To -->
+                                <div class="form-group">
+                                    <label class="form-label">Tetapkan ke:</label>
+                                    <select name="assigned_to" class="form-select">
+                                        <option value="">Pilih Petugas</option>
+                                        <option value="1">Petugas 1</option>
+                                        <option value="2">Petugas 2</option>
+                                    </select>
+                                </div>
+
+                                <!-- Catatan -->
+                                <div class="form-group">
+                                    <label class="form-label">Catatan Petugas:</label>
+                                    <textarea name="catatan_petugas" class="form-textarea" rows="3" placeholder="Tambahkan catatan...">{{ pengaduan.catatan_petugas or '' }}</textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-save"></i> Simpan
+                                </button>
+                            </form>
+
+                            <hr>
+
+                            <!-- Upload Bukti Penyelesaian -->
+                            {% if pengaduan.status in ['Sedang Diproses', 'Diterima'] %}
+                            <div class="upload-section">
+                                <h4>Upload Bukti Penyelesaian</h4>
+                                <form action="{{ url_for('upload_bukti_penyelesaian', id=pengaduan.id) }}" method="POST" enctype="multipart/form-data">
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" name="bukti_file" class="form-file" accept="image/*,.pdf" required>
+                                        <small class="file-hint">Format: JPG, PNG, PDF (Max 16MB)</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        <i class="fas fa-upload"></i> Upload & Selesaikan
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+
+                            {% if pengaduan.bukti_penyelesaian %}
+                            <div class="bukti-section">
+                                <h4>Bukti Penyelesaian:</h4>
+                                <a href="{{ url_for('static', filename='uploads/bukti/' + pengaduan.bukti_penyelesaian) }}" target="_blank" class="btn btn-info btn-block">
+                                    <i class="fas fa-download"></i> Lihat Bukti
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

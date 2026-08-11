@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SipMas - Daftar Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box register-box">
+            <!-- Logo Section -->
+            <div class="logo-section">
+                <div class="logo-icon">
+    <svg width="70" height="70" viewBox="0 0 80 80" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+
+        <path d="M40 5L15 17.5V35C15 52.5 25.5 67.5 40 72.5C54.5 67.5 65 52.5 65 35V17.5L40 5Z"
+              stroke="#8E1F2F"
+              stroke-width="3"
+              fill="none"/>
+
+        <rect x="25" y="25"
+              width="30"
+              height="22"
+              rx="3"
+              fill="#8E1F2F"/>
+
+        <path d="M32 36L37 41L48 30"
+              stroke="#2E7D32"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+
+        <circle cx="32" cy="58" r="4"
+                fill="#8E1F2F"/>
+
+        <circle cx="40" cy="56" r="5"
+                fill="#D4AF37"/>
+
+        <circle cx="48" cy="58" r="4"
+                fill="#8E1F2F"/>
+
+    </svg>
+    </div>
+                <h1 class="app-title">IT CARE</h1>
+                <p class="tagline">Sistem Pengaduan Teknologi Informasi</p>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Register Form -->
+            <form method="POST" class="login-form register-form">
+                
+                <!-- Nama Lengkap / Username Admin -->
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-shield input-icon"></i>
+                        <input type="text" name="nama" placeholder="Masukkan Nama Admin" required>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" name="password" id="password" placeholder="Password Admin" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('password', 'toggleIcon1')">
+                            <i class="fas fa-eye" id="toggleIcon1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tombol Daftar Admin -->
+                <button type="submit" class="btn-login" style="margin-top: 20px;">Daftar Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

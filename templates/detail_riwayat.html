@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pengaduan - IT CARE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <i class="fas fa-shield-alt logo-icon"></i>
+                    <h3>IT CARE</h3>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-item">
+                    <i class="fas fa-home"></i><span>Beranda</span>
+                </a>
+                <a href="{{ url_for('riwayat') }}" class="nav-item active">
+                    <i class="fas fa-history"></i><span>Riwayat</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-item nav-logout">
+                    <i class="fas fa-sign-out-alt"></i><span>Keluar</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="detail-header">
+                <button onclick="window.history.back()" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </button>
+                <h1>Detail Pengaduan</h1>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-row">
+                    <label>ID Pengaduan</label>
+                    <p><strong>TIK-{{ pengaduan.id }}-{{ pengaduan.created_at.strftime('%Y') }}</strong></p>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Judul</label>
+                    <p>{{ pengaduan.judul }}</p>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Deskripsi</label>
+                    <p>{{ pengaduan.deskripsi }}</p>
+                </div>
+                
+                {% if pengaduan.lokasi %}
+                <div class="detail-row">
+                    <label>Lokasi</label>
+                    <p>{{ pengaduan.lokasi }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <label>Status</label>
+                    <span class="badge {% if pengaduan.status == 'Selesai' %}badge-success{% elif pengaduan.status == 'Sedang Diproses' %}badge-warning{% else %}badge-info{% endif %}">
+                        {{ pengaduan.status }}
+                    </span>
+                </div>
+                
+                <div class="detail-row">
+                <label>Lampiran</label>
+
+                {% if pengaduan.attachment %}
+                    <a href="{{ url_for('static', filename=pengaduan.attachment) }}" target="_blank">
+                        Lihat Lampiran
+                    </a>
+                {% else %}
+                    <p>Tidak ada lampiran.</p>
+                {% endif %}
+                </div>
+                
+                <div class="detail-row">
+                    <label>Tanggal Dibuat</label>
+                    <p>{{ pengaduan.created_at.strftime('%d %B %Y, %H:%M WIB') }}</p>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Terakhir Diupdate</label>
+                    <p>{{ pengaduan.updated_at.strftime('%d %B %Y, %H:%M WIB') if pengaduan.updated_at else '-' }}</p>
+                </div>
+
+                <div class="detail-actions">
+                    {% if pengaduan.status == 'Selesai' %}
+                    <button class="btn-action btn-download" onclick="downloadPDF()">
+                        <i class="fas fa-download"></i> Unduh PDF
+                    </button>
+                    {% else %}
+                    <form action="{{ url_for('update_status', id=pengaduan.id, status='selesai') }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn-action btn-selesai">
+                            <i class="fas fa-check"></i> Tandai Selesai
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button class="btn-action btn-edit" onclick="window.location.href='/pengaduan/edit/{{ pengaduan.id }}'">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function downloadPDF() {
+            alert('Mengunduh PDF untuk pengaduan #{{ pengaduan.id }}...\n\nFitur download PDF akan segera tersedia!');
+        }
+    </script>
+</body>
+</html>

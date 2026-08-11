@@ -1,0 +1,67 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Form Pengaduan - SipMas{% endblock %}
+{% block active_page %}form_pengaduan{% endblock %}
+
+{% block page_title %}Form Pengaduan{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form action="{{ url_for('form_pengaduan') }}" method="POST" enctype="multipart/form-data" id="pengaduanForm">
+        <div class="form-group">
+            <label class="form-label">Judul Pengaduan</label>
+            <input type="text" name="title" class="form-input" placeholder="Contoh: Jaringan WiFi Sangat Lambat" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="deskripsi" class="form-textarea" rows="5" placeholder="Jelaskan masalah secara lengkap..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Lokasi</label>
+            <input type="text" name="lokasi" class="form-input" placeholder="Unit kerja / Ruangan yang mengalami kendala" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Upload Bukti (Opsional)</label>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="upload-text">Seret file atau klik untuk mengunggah</p>
+                <p class="upload-subtext">PNG, JPG, PDF • Maks. 5MB</p>
+                <input type="file" name="file" class="file-input" id="fileUpload" accept="image/*,.pdf">
+            </div>
+            <div id="filePreview" class="file-preview"></div>
+        </div>
+
+        <div class="toggle-section">
+            <span class="toggle-label">Kirim sebagai Anonim</span>
+            <label class="switch">
+                <input type="checkbox" name="anonim" value="1">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn btn-outline" onclick="window.location='{{ url_for('dashboard') }}'">Batal</button>
+            <button type="submit" class="btn btn-primary">Kirim Pengaduan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('fileUpload').addEventListener('change', function(e) {
+        const preview = document.getElementById('filePreview');
+        preview.innerHTML = '';
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.innerHTML = `<i class="fas fa-file"></i> <span>${file.name}</span><small>${(file.size/1024/1024).toFixed(2)} MB</small>`;
+            preview.appendChild(div);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard Petugas - IT CARE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <aside class="sidebar">
+
+    <div class="sidebar-header">
+
+        <div class="logo-icon">
+    <svg width="70" height="70" viewBox="0 0 80 80" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Shield -->
+        <path d="M40 5L15 17.5V35C15 52.5 25.5 67.5 40 72.5C54.5 67.5 65 52.5 65 35V17.5L40 5Z"
+              stroke="#8E1F2F"
+              stroke-width="3"
+              fill="none"/>
+
+        <!-- Kotak tengah -->
+        <rect x="25" y="25" width="30" height="22" rx="3"
+              fill="#8E1F2F"/>
+
+        <!-- Centang -->
+        <path d="M32 36L37 41L48 30"
+              stroke="#2E7D32"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+
+        <!-- Titik bawah -->
+        <circle cx="32" cy="58" r="4" fill="#8E1F2F"/>
+        <circle cx="40" cy="56" r="5" fill="#D4AF37"/>
+        <circle cx="48" cy="58" r="4" fill="#8E1F2F"/>
+
+    </svg>
+</div>
+
+        <h3>IT CARE</h3>
+
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <a href="{{ url_for('dashboard_petugas') }}" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Beranda</span>
+        </a>
+
+        <a href="{{ url_for('verification_laporan_list') }}" class="nav-item">
+            <i class="fas fa-list"></i>
+            <span>Verifikasi</span>
+        </a>
+
+        <a href="{{ url_for('daftar_pengaduan_petugas') }}" class="nav-item">
+            <i class="fas fa-folder-open"></i>
+            <span>Daftar Pengaduan</span>
+        </a>
+
+        <a href="{{ url_for('logout') }}" class="nav-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Keluar</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+        <main class="main-content">
+            <div class="content-header">
+    <div>
+        <h1>Dashboard Petugas</h1>
+        <p>Kelola seluruh laporan pengaduan masyarakat.</p>
+    </div>
+
+    <div class="welcome-box">
+        <i class="fas fa-user-shield"></i>
+        <span>Selamat Datang, {{ stats.user_nama or 'Petugas' }} 👋</span>
+    </div>
+</div>
+
+<!-- STATISTIK PETUGAS -->
+<div class="petugas-stats">
+
+    <div class="petugas-stat-card">
+        <div class="petugas-stat-icon">
+            <i class="fas fa-file-alt"></i>
+        </div>
+
+        <div class="petugas-stat-info">
+            <span>Total Pengaduan</span>
+            <strong>{{ stats.total_complaint or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="petugas-stat-card">
+        <div class="petugas-stat-icon pending">
+            <i class="fas fa-clock"></i>
+        </div>
+
+        <div class="petugas-stat-info">
+            <span>Pending</span>
+            <strong>{{ stats.pending or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="petugas-stat-card">
+        <div class="petugas-stat-icon proses">
+            <i class="fas fa-tools"></i>
+        </div>
+
+        <div class="petugas-stat-info">
+            <span>Diproses</span>
+            <strong>{{ stats.in_progress or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="petugas-stat-card">
+        <div class="petugas-stat-icon selesai">
+            <i class="fas fa-check-circle"></i>
+        </div>
+
+        <div class="petugas-stat-info">
+            <span>Selesai</span>
+            <strong>{{ stats.selesai or 0 }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="table-section">
+    <h2>Pengaduan Terbaru</h2>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Judul</th>
+                <th>Status</th>
+                <th>Tanggal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for p in pengaduan_terbaru %}
+            <tr>
+                <td>#{{ "%03d"|format(p.id) }}</td>
+                <td>{{ p.judul }}</td>
+                <td>{{ p.status }}</td>
+                <td>{{ p.created_at.strftime('%d/%m/%Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+        </main>
+    </div>
+</body>
+</html>
