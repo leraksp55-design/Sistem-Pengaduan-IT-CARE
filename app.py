@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from io import BytesIO
 from functools import wraps
 from flask_bcrypt import Bcrypt
 import mysql.connector
 import os
+import requests
 import time
 from werkzeug.utils import secure_filename
 
@@ -51,6 +52,7 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
 
 # --- ROUTE LOGIN (MEMBACA DATA) ---
 @app.route('/', methods=['GET', 'POST'])
@@ -589,7 +591,7 @@ def detail_pengaduan(id):
         cursor = db.cursor(dictionary=True)
         cursor.execute('''
             SELECT c.id_complaint AS id, c.id_user, c.title AS judul, c.deskripsi, c.lokasi,
-                   c.status, c.attachment, c.anonim, c.created_at, c.updated_at,
+                   c.status, c.attachment, c.created_at, c.updated_at,
                    u.nama AS nama_lengkap, u.nama AS username, u.no_hp AS no_hp
             FROM complaint c
             JOIN users u ON c.id_user = u.id_user
@@ -613,60 +615,234 @@ def edit_pengaduan(id):
     flash('Fitur edit pengaduan sedang dalam pengembangan.', 'info')
     return redirect(url_for('pengaduan_saya'))
 
-# --- ROUTE FORM PENGADUAN (Simpan ke DB) ---
+# --- ROUTE FORM PENGADUAN ---
+
 @app.route('/form-pengaduan', methods=['GET', 'POST'])
 @login_required
 def form_pengaduan():
+
     if request.method == 'POST':
+
+        # ==============================
+        # DATA PENGADUAN
+        # ==============================
+
         judul = request.form.get('title')
         deskripsi = request.form.get('deskripsi')
-        lokasi = request.form.get('lokasi')
 
-        # File handling
+        # ==============================
+        # DATA LOKASI
+        # ==============================
+
+        provinsi = request.form.get('provinsi')
+        kabupaten = request.form.get('kabupaten')
+        universitas = request.form.get('universitas')
+        alamat_detail = request.form.get('alamat_detail')
+
+        # Gabungkan menjadi satu lokasi
+        lokasi = (
+            f"{universitas}, "
+            f"{kabupaten}, "
+            f"{provinsi}"
+        )
+
+        if alamat_detail:
+            lokasi += f" - {alamat_detail}"
+
+        # ==============================
+        # FILE HANDLING
+        # ==============================
+
         uploaded_file = request.files.get('file')
         saved_filename = ''
 
         db = get_db_connection()
         cursor = db.cursor()
+
         try:
+
+            # ==============================
+            # KATEGORI DEFAULT
+            # ==============================
+
             category_id = get_default_category_id()
+
+
+            # ==============================
+            # SIMPAN PENGADUAN
+            # ==============================
+
             cursor.execute('''
-                INSERT INTO complaint (id_user, title, deskripsi, lokasi, status, attachment, id_category)
-                VALUES (%s, %s, %s, %s, 'pending', %s, %s)
-            ''', (session['id'], judul, deskripsi, lokasi, saved_filename, category_id))
+                INSERT INTO complaint
+                (
+                    id_user,
+                    title,
+                    deskripsi,
+                    lokasi,
+                    status,
+                    attachment,
+                    id_category
+                )
+                VALUES
+                (
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    'pending',
+                    %s,
+                    %s
+                )
+            ''', (
+                session['id'],
+                judul,
+                deskripsi,
+                lokasi,
+                saved_filename,
+                category_id
+            ))
+
             db.commit()
+
             inserted_id = cursor.lastrowid
 
-            # Save uploaded file if present
+
+            # ==============================
+            # SIMPAN FILE
+            # ==============================
+
             if uploaded_file and uploaded_file.filename:
-                filename = secure_filename(uploaded_file.filename)
+
+                filename = secure_filename(
+                    uploaded_file.filename
+                )
+
                 name, ext = os.path.splitext(filename)
-                new_filename = f"{inserted_id}_{int(time.time())}{ext}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+
+                new_filename = (
+                    f"{inserted_id}_"
+                    f"{int(time.time())}"
+                    f"{ext}"
+                )
+
+                file_path = os.path.join(
+                    app.config['UPLOAD_FOLDER'],
+                    new_filename
+                )
+
                 uploaded_file.save(file_path)
-                saved_filename = f"image/uploads/{new_filename}"
 
-                # update attachment path in DB
-                try:
-                    cursor.execute('UPDATE complaint SET attachment = %s WHERE id_complaint = %s', (saved_filename, inserted_id))
-                    db.commit()
-                except Exception as e_up:
-                    print('Warning: failed to update attachment in DB:', e_up)
+                saved_filename = (
+                    f"image/uploads/{new_filename}"
+                )
 
-            flash('Pengaduan berhasil dikirim!', 'success')
-            return redirect(url_for('pengaduan_saya'))
+
+                # Update attachment
+                cursor.execute(
+                    '''
+                    UPDATE complaint
+                    SET attachment = %s
+                    WHERE id_complaint = %s
+                    ''',
+                    (
+                        saved_filename,
+                        inserted_id
+                    )
+                )
+
+                db.commit()
+
+
+            flash(
+                'Pengaduan berhasil dikirim!',
+                'success'
+            )
+
+            return redirect(
+                url_for('pengaduan_saya')
+            )
+
 
         except Exception as e:
+
             db.rollback()
-            print('Error inserting pengaduan:', e)
-            flash(f'Gagal mengirim pengaduan: {e}', 'error')
-            return redirect(url_for('form_pengaduan'))
+
+            print(
+                'Error inserting pengaduan:',
+                e
+            )
+
+            flash(
+                f'Gagal mengirim pengaduan: {e}',
+                'error'
+            )
+
+            return redirect(
+                url_for('form_pengaduan')
+            )
+
 
         finally:
+
             cursor.close()
             db.close()
-    
-    return render_template('form_pengaduan.html')
+
+
+    return render_template(
+        'form_pengaduan.html'
+    )
+
+@app.route('/api/universitas')
+def api_universitas():
+
+    import requests
+
+    kabupaten = request.args.get('kabupaten', '').strip()
+
+    if not kabupaten:
+        return jsonify({
+            "success": False,
+            "message": "Kabupaten/Kota tidak boleh kosong",
+            "data": []
+        }), 400
+
+    try:
+
+        url = "https://api-frontend.kemdikbud.go.id/hit_kampus"
+
+        response = requests.get(
+            url,
+            params={
+                "keyword": kabupaten
+            },
+            timeout=15
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        return jsonify(data)
+
+    except requests.exceptions.RequestException as e:
+
+        print("ERROR API UNIVERSITAS:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Gagal mengambil data universitas",
+            "data": []
+        }), 500
+
+    except Exception as e:
+
+        print("ERROR UNIVERSITAS:", e)
+
+        return jsonify({
+            "success": False,
+            "message": str(e),
+            "data": []
+        }), 500
 
 # --- ROUTE TAMBAHAN (Fix Error Sebelumnya) ---
 @app.route('/logout')
@@ -674,60 +850,6 @@ def logout():
     session.clear()
     flash('Anda telah logout.', 'info')
     return redirect(url_for('login'))
-
-# login admin/petugas (internal)
-@app.route('/register-internal-petugas', methods=['GET', 'POST'])
-def register_internal_petugas():
-    if request.method == 'POST':
-        nama = request.form.get('nama')
-        password = request.form.get('password')
-
-        # Validasi kolom wajib untuk petugas
-        if not nama or not password:
-            flash('Semua kolom wajib diisi!', 'error')
-            return redirect(url_for('register_internal_petugas'))
-
-        # Enkripsi password menggunakan bcrypt sesuai kode warga kamu
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-
-        db = get_db_connection()
-        cursor = db.cursor()
-
-        try:
-            # Cek apakah nama petugas sudah ada (cek eksplisit untuk diagnosa)
-            cursor.execute('SELECT COUNT(*) FROM users WHERE nama = %s', (nama,))
-            exists = cursor.fetchone()[0]
-            if exists:
-                flash('Nama petugas sudah terdaftar!', 'error')
-                return redirect(url_for('register_internal_petugas'))
-
-            # Menyimpan data dengan role 'petugas'
-            # Jika kolom tidak boleh NULL, simpan string kosong sebagai fallback
-            print('Inserting petugas:', nama)
-            cursor.execute('''
-                INSERT INTO users (nama, password, role, nik, no_hp) 
-                VALUES (%s, %s, %s, %s, %s)
-            ''', (nama, hashed_password, 'petugas', '', ''))
-            db.commit()
-            flash('Pendaftaran Petugas berhasil! Silakan login.', 'success')
-            return redirect(url_for('login'))
-
-        except mysql.connector.IntegrityError as ie:
-            # Tampilkan pesan error di konsol untuk diagnosa
-            print('IntegrityError on insert petugas:', ie)
-            flash('Nama petugas sudah terdaftar atau constraint lain dilanggar.', 'error')
-            return redirect(url_for('register_internal_petugas'))
-
-        except Exception as e:
-            print('Error saat mendaftar petugas:', e)
-            flash(f'Gagal membuat akun petugas: {e}', 'error')
-            return redirect(url_for('register_internal_petugas'))
-
-        finally:
-            cursor.close()
-            db.close()
-
-    return render_template('register_petugas.html')
 
 @app.route('/riwayat')
 @login_required

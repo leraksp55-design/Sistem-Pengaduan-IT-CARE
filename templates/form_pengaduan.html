@@ -18,10 +18,74 @@
             <textarea name="deskripsi" class="form-textarea" rows="5" placeholder="Jelaskan masalah secara lengkap..." required></textarea>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">Lokasi</label>
-            <input type="text" name="lokasi" class="form-input" placeholder="Unit kerja / Ruangan yang mengalami kendala" required>
-        </div>
+        
+<!-- ==============================
+     LOKASI PENGADUAN
+     ============================== -->
+
+<div class="form-group">
+
+    <!-- PROVINSI -->
+    <label class="form-label">Provinsi</label>
+
+    <select
+        name="provinsi"
+        id="provinsi"
+        class="form-input"
+        required>
+
+        <option value="">Pilih Provinsi</option>
+
+    </select>
+
+
+    <!-- KABUPATEN / KOTA -->
+    <label class="form-label">Kabupaten / Kota</label>
+
+    <select
+        name="kabupaten"
+        id="kabupaten"
+        class="form-input"
+        required
+        disabled>
+
+        <option value="">
+            Pilih Provinsi Terlebih Dahulu
+        </option>
+
+    </select>
+
+
+    <!-- UNIVERSITAS -->
+    <label class="form-label">Universitas</label>
+
+    <select
+        name="universitas"
+        id="universitas"
+        class="form-input"
+        required
+        disabled>
+
+        <option value="">
+            Pilih Kabupaten / Kota Terlebih Dahulu
+        </option>
+
+    </select>
+
+
+    <!-- ALAMAT DETAIL -->
+    <div class="form-group">
+    <label class="form-label">Alamat Detail</label>
+    <textarea
+        name="alamat_detail"
+        id="alamat_detail"
+        class="form-textarea"
+        rows="5"
+        placeholder="Contoh: Gedung Laboratorium Komputer, Lantai 2, Ruang 203"
+        required></textarea>
+</div>
+
+</div>
 
         <div class="form-group">
             <label class="form-label">Upload Bukti (Opsional)</label>
@@ -33,15 +97,6 @@
             </div>
             <div id="filePreview" class="file-preview"></div>
         </div>
-
-        <div class="toggle-section">
-            <span class="toggle-label">Kirim sebagai Anonim</span>
-            <label class="switch">
-                <input type="checkbox" name="anonim" value="1">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
         <div class="button-group">
             <button type="button" class="btn btn-outline" onclick="window.location='{{ url_for('dashboard') }}'">Batal</button>
             <button type="submit" class="btn btn-primary">Kirim Pengaduan</button>
@@ -52,16 +107,460 @@
 
 {% block extra_js %}
 <script>
-    document.getElementById('fileUpload').addEventListener('change', function(e) {
-        const preview = document.getElementById('filePreview');
-        preview.innerHTML = '';
-        if (this.files.length > 0) {
-            const file = this.files[0];
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `<i class="fas fa-file"></i> <span>${file.name}</span><small>${(file.size/1024/1024).toFixed(2)} MB</small>`;
-            preview.appendChild(div);
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const provinsi = document.getElementById("provinsi");
+    const kabupaten = document.getElementById("kabupaten");
+    const universitas = document.getElementById("universitas");
+
+    const API_WILAYAH =
+        "https://www.emsifa.com/api-wilayah-indonesia/api";
+
+
+    // ==========================================
+    // 1. LOAD SEMUA PROVINSI
+    // ==========================================
+
+    fetch(API_WILAYAH + "/provinces.json")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Gagal mengambil data provinsi");
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            provinsi.innerHTML =
+                '<option value="">Pilih Provinsi</option>';
+
+            data.forEach(item => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = item.id;
+                option.textContent = item.name;
+
+                provinsi.appendChild(option);
+
+            });
+
+        })
+        .catch(error => {
+
+            console.error(
+                "Gagal mengambil provinsi:",
+                error
+            );
+
+            provinsi.innerHTML =
+                '<option value="">Gagal memuat provinsi</option>';
+
+        });
+
+
+    // ==========================================
+    // 2. PROVINSI -> KABUPATEN / KOTA
+    // ==========================================
+
+    provinsi.addEventListener("change", function () {
+
+        const idProvinsi = this.value;
+
+        kabupaten.innerHTML =
+            '<option value="">Memuat Kabupaten / Kota...</option>';
+
+        universitas.innerHTML =
+            '<option value="">Pilih Kabupaten / Kota Terlebih Dahulu</option>';
+
+        kabupaten.disabled = true;
+        universitas.disabled = true;
+
+
+        if (!idProvinsi) {
+
+            kabupaten.innerHTML =
+                '<option value="">Pilih Provinsi Terlebih Dahulu</option>';
+
+            return;
         }
+
+
+        fetch(
+            API_WILAYAH +
+            "/regencies/" +
+            idProvinsi +
+            ".json"
+        )
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error(
+                    "Gagal mengambil kabupaten/kota"
+                );
+            }
+
+            return response.json();
+
+        })
+        .then(data => {
+
+            kabupaten.innerHTML =
+                '<option value="">Pilih Kabupaten / Kota</option>';
+
+            data.forEach(item => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = item.id;
+                option.textContent = item.name;
+
+                kabupaten.appendChild(option);
+
+            });
+
+            kabupaten.disabled = false;
+
+        })
+        .catch(error => {
+
+            console.error(
+                "Gagal mengambil kabupaten:",
+                error
+            );
+
+            kabupaten.innerHTML =
+                '<option value="">Gagal memuat Kabupaten / Kota</option>';
+
+        });
+
     });
+
+
+    // ==========================================
+// DAFTAR UNIVERSITAS
+// ==========================================
+
+const daftarUniversitas = {
+
+    // ==========================================
+    // SUMATERA UTARA
+    // ==========================================
+
+    "SUMATERA UTARA": {
+
+        "KOTA MEDAN": [
+            "Universitas Sumatera Utara",
+            "Universitas Negeri Medan",
+            "Universitas Muhammadiyah Sumatera Utara",
+            "Universitas Islam Sumatera Utara",
+            "Universitas Medan Area",
+            "Universitas Pembangunan Panca Budi",
+            "Universitas Prima Indonesia",
+            "Universitas Potensi Utama",
+            "Universitas HKBP Nommensen",
+            "Universitas Methodist Indonesia",
+            "Universitas Dharmawangsa",
+            "Universitas Al-Azhar Medan",
+            "Universitas Sari Mutiara Indonesia",
+            "Universitas Katolik Santo Thomas",
+            "Universitas Harapan Medan"
+        ],
+
+        "KABUPATEN DELI SERDANG": [
+            "Universitas Deli Sumatera",
+            "Universitas Nahdlatul Ulama Sumatera Utara"
+        ],
+
+        "KOTA BINJAI": [
+            "Universitas Islam Sumatera Utara Kampus Binjai"
+        ],
+
+        "KOTA PEMATANGSIANTAR": [
+            "Universitas Simalungun",
+            "Universitas Efarina"
+        ],
+
+        "KOTA TEBING TINGGI": [
+            "Sekolah Tinggi Ilmu Ekonomi Bina Karya"
+        ],
+
+        "KOTA TANJUNG BALAI": [
+            "Universitas Asahan"
+        ],
+
+        "KABUPATEN ASAHAN": [
+            "Universitas Asahan"
+        ],
+
+        "KABUPATEN LANGKAT": [
+            "Universitas Putra Abadi Langkat"
+        ]
+    },
+
+
+    // ==========================================
+    // ACEH
+    // ==========================================
+
+    "ACEH": {
+
+        "KOTA BANDA ACEH": [
+            "Universitas Syiah Kuala",
+            "Universitas Islam Negeri Ar-Raniry",
+            "Universitas Muhammadiyah Aceh",
+            "Universitas Serambi Mekkah",
+            "Universitas Abulyatama",
+            "Universitas Ubudiyah Indonesia",
+            "Universitas Iskandar Muda",
+            "Universitas Bina Bangsa Getsempena",
+            "Universitas Bhakti Indonesia"
+        ],
+
+        "KABUPATEN ACEH BESAR": [
+            "Universitas Abulyatama",
+            "Universitas Islam Al-Aziziyah Indonesia"
+        ],
+
+        "KOTA LHOKSEUMAWE": [
+            "Universitas Malikussaleh",
+            "Institut Agama Islam Negeri Lhokseumawe"
+        ],
+
+        "KABUPATEN ACEH UTARA": [
+            "Universitas Malikussaleh"
+        ],
+
+        "KOTA LANGSA": [
+            "Universitas Samudra",
+            "Institut Agama Islam Negeri Langsa"
+        ],
+
+        "KABUPATEN ACEH TAMIANG": [
+            "Universitas Samudra"
+        ],
+
+        "KOTA LANGSA": [
+            "Universitas Samudra",
+            "Institut Agama Islam Negeri Langsa"
+        ],
+
+        "KOTA BIREUEN": [
+            "Universitas Almuslim",
+            "Institut Agama Islam Negeri Lhokseumawe"
+        ],
+
+        "KABUPATEN BIREUEN": [
+            "Universitas Almuslim"
+        ],
+
+        "KABUPATEN ACEH TENGAH": [
+            "Universitas Gajah Putih"
+        ],
+
+        "KOTA TAKENGON": [
+            "Universitas Gajah Putih"
+        ],
+
+        "KABUPATEN ACEH BARAT": [
+            "Universitas Teuku Umar"
+        ],
+
+        "KOTA MEULABOH": [
+            "Universitas Teuku Umar"
+        ],
+
+        "KABUPATEN ACEH BARAT DAYA": [
+            "Universitas Muhammadiyah Aceh"
+        ],
+
+        "KABUPATEN ACEH SELATAN": [
+            "Sekolah Tinggi Agama Islam Tapaktuan"
+        ],
+
+        "KABUPATEN ACEH TENGGARA": [
+            "Universitas Gunung Leuser"
+        ],
+
+        "KABUPATEN ACEH JAYA": [
+            "Sekolah Tinggi Ilmu Pertanian Yashafa"
+        ],
+
+        "KABUPATEN ACEH SINGKIL": [
+            "Sekolah Tinggi Agama Islam Syekh Abdur Rauf Singkil"
+        ],
+
+        "KABUPATEN PIDIE": [
+            "Universitas Jabal Ghafur"
+        ],
+
+        "KABUPATEN PIDIE JAYA": [
+            "Sekolah Tinggi Ilmu Kesehatan Jabal Ghafur"
+        ],
+
+        "KABUPATEN BENER MERIAH": [
+            "Universitas Gajah Putih"
+        ],
+
+        "KABUPATEN GAYO LUES": [
+            "Sekolah Tinggi Ilmu Pertanian Gajah Putih"
+        ],
+
+        "KABUPATEN ACEH TIMUR": [
+            "Institut Agama Islam Negeri Langsa"
+        ],
+
+        "KABUPATEN ACEH TENGAH": [
+            "Universitas Gajah Putih"
+        ]
+    }
+
+};
+
+
+kabupaten.addEventListener("change", function () {
+
+    const idKabupaten = this.value;
+
+    const namaKabupaten =
+        this.options[this.selectedIndex].text.trim().toUpperCase();
+
+    const namaProvinsi =
+        provinsi.options[
+            provinsi.selectedIndex
+        ].text.trim().toUpperCase();
+
+
+    // Reset universitas
+    universitas.innerHTML =
+        '<option value="">Memuat universitas...</option>';
+
+    universitas.disabled = true;
+
+
+    // Kalau kabupaten belum dipilih
+    if (!idKabupaten) {
+
+        universitas.innerHTML =
+            '<option value="">Pilih Kabupaten / Kota Terlebih Dahulu</option>';
+
+        return;
+    }
+
+
+    // ==========================================
+    // CARI DATA UNIVERSITAS
+    // ==========================================
+
+    const dataUniversitas =
+        daftarUniversitas[namaProvinsi] &&
+        daftarUniversitas[namaProvinsi][namaKabupaten];
+
+
+    // ==========================================
+    // JIKA DATA DITEMUKAN
+    // ==========================================
+
+    if (
+        dataUniversitas &&
+        dataUniversitas.length > 0
+    ) {
+
+        universitas.innerHTML =
+            '<option value="">Pilih Universitas</option>';
+
+
+        dataUniversitas.forEach(function (namaUniversitas) {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                namaUniversitas;
+
+            option.textContent =
+                namaUniversitas;
+
+            universitas.appendChild(option);
+
+        });
+
+
+        universitas.disabled = false;
+
+
+    } else {
+
+        // ==========================================
+        // JIKA BELUM ADA DATA UNIVERSITAS
+        // ==========================================
+
+        universitas.innerHTML =
+            '<option value="">Universitas belum tersedia</option>';
+
+        universitas.disabled = true;
+
+    }
+
+});
+
+    // ==========================================
+    // 4. UPLOAD BUKTI
+    // ==========================================
+
+    const fileUpload =
+        document.getElementById("fileUpload");
+
+    const filePreview =
+        document.getElementById("filePreview");
+
+
+    if (fileUpload) {
+
+        fileUpload.addEventListener(
+            "change",
+            function () {
+
+                filePreview.innerHTML = "";
+
+
+                if (this.files.length > 0) {
+
+                    const file = this.files[0];
+
+
+                    const div =
+                        document.createElement("div");
+
+                    div.className = "preview-item";
+
+
+                    div.innerHTML = `
+                        <i class="fas fa-file"></i>
+
+                        <span>
+                            ${file.name}
+                        </span>
+
+                        <small>
+                            ${(file.size / 1024 / 1024).toFixed(2)} MB
+                        </small>
+                    `;
+
+
+                    filePreview.appendChild(div);
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
 </script>
 {% endblock %}

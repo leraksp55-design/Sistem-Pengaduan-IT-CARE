@@ -156,9 +156,14 @@
 
                                 <div class="photo-grid">
                                     {% if pengaduan.attachment %}
-                                        <img src="{{ url_for('static', filename=pengaduan.attachment) }}"
-                                            alt="Foto Bukti"
-                                            class="photo-item">
+                                        <a href="{{ url_for('static', filename=pengaduan.attachment) }}"
+                                        target="_blank"
+                                        class="photo-link">
+
+                                            <img src="{{ url_for('static', filename=pengaduan.attachment) }}"
+                                                alt="Foto Bukti"
+                                                class="photo-item">
+                                        </a>
                                     {% else %}
                                         <p>Tidak ada foto bukti.</p>
                                     {% endif %}

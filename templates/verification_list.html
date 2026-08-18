@@ -88,7 +88,12 @@
                                 <td>{{ l.title }}</td>
                                 <td>{{ l.pelapor or 'Anonim' }}</td>
                                 <td>{{ l.created_at.strftime('%d %b %Y') }}</td>
-                                <td><a href="{{ url_for('verification_laporan', id=l.id) }}" class="btn-selesai">Lihat & Verifikasi</a></td>
+                               <td class="aksi-cell">
+                        <a href="{{ url_for('verification_laporan', id=l.id) }}" class="btn-verifikasi">
+                            <i class="fas fa-eye"></i>
+                            <span>Lihat & Verifikasi</span>
+                        </a>
+                    </td>
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -1913,6 +1913,152 @@ textarea {
     color:#B71C1C;
 }
 
+/* ==============================
+   TOMBOL LIHAT & VERIFIKASI
+   ============================== */
+
+.aksi-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.btn-verifikasi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-width: 145px;
+    padding: 9px 14px;
+
+    background: #2E7D32;
+    color: #fff !important;
+
+    border-radius: 5px;
+    border: none;
+
+    text-decoration: none !important;
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.btn-verifikasi i {
+    font-size: 13px;
+}
+
+.btn-verifikasi:hover {
+    background: #256B2A;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
+}
+
+.btn-verifikasi:active {
+    transform: translateY(0);
+}
+
+/* ==============================
+   TOMBOL DETAIL PENGADUAN
+   ============================== */
+
+.aksi-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.btn-detail {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-width: 75px;
+    padding: 8px 14px;
+
+    background: #2E7D32;
+    color: #ffffff !important;
+
+    border-radius: 5px;
+    border: none;
+
+    text-decoration: none !important;
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-detail i {
+    font-size: 12px;
+}
+
+.btn-detail:hover {
+    background: #256B2A;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
+}
+
+.btn-detail:active {
+    transform: translateY(0);
+}
+
+/* ==============================
+   KOLOM AKSI
+   ============================== */
+
+.data-table th:last-child {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.data-table td:last-child {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.data-table td:last-child .btn-detail {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto !important;
+}
+
+/* ==============================
+   FOTO BUKTI
+   ============================== */
+
+.photo-link {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.photo-item {
+    width: 155px;
+    height: 155px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.photo-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
+}
+
 /* =====================================================
    DASHBOARD PETUGAS - STATISTIK
 ===================================================== */

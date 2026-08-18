@@ -89,7 +89,12 @@
                                 <td>{{ p.judul }}</td>
                                 <td>{{ p.status }}</td>
                                 <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
-                                <td><a href="{{ url_for('detail_pengaduan_petugas', id=p.id) }}" class="btn-selesai">Detail</a></td>
+                                <td class="aksi-cell">
+                                <a href="{{ url_for('detail_pengaduan_petugas', id=p.id) }}" class="btn-detail">
+                                    <i class="fas fa-eye"></i>
+                                    <span>Detail</span>
+                                </a>
+                            </td>
                             </tr>
                             {% endfor %}
                         </tbody>
