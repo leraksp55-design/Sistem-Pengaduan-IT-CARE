@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard Admin - IT CARE</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+</head>
+
+<body class="admin-page">
+
+<div class="dashboard-container">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+    <h2>
+        <i class="fas fa-headset"></i>
+        IT CARE
+    </h2>
+
+    <span>Admin Panel</span>
+</div>
+
+        <nav class="sidebar-menu">
+
+    <a href="{{ url_for('dashboard_admin') }}" class="active">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="{{ url_for('data_pengaduan_admin') }}">
+        <i class="fas fa-file-alt"></i>
+        <span>Data Pengaduan</span>
+    </a>
+
+    <a href="{{ url_for('data_user_admin') }}">
+        <i class="fas fa-users"></i>
+        <span>Data User</span>
+    </a>
+
+    <a href="{{ url_for('data_petugas_admin') }}">
+        <i class="fas fa-user-shield"></i>
+        <span>Data Petugas</span>
+    </a>
+
+    <a href="{{ url_for('data_lokasi_admin') }}">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Lokasi</span>
+    </a>
+    
+    <a href="{{ url_for('reset_password_admin') }}">
+        <i class="fas fa-key"></i>
+        <span>Reset Password</span>
+    </a>
+
+</nav>
+
+        <div class="sidebar-bottom">
+
+            <a href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+
+        <div class="content-header">
+
+            <div>
+                <h1>Dashboard Admin</h1>
+
+                <p>
+                    Kelola sistem pengaduan IT CARE.
+                </p>
+            </div>
+
+            <div class="welcome-box">
+
+                <i class="fas fa-user-shield"></i>
+
+                <span>
+                    Selamat Datang,
+                    {{ stats.user_nama or 'Admin' }} 👋
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             STATISTIK
+        ========================== -->
+
+        <div class="stats-grid">
+
+            <!-- TOTAL PENGADUAN -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.total_complaint }}
+                    </h3>
+
+                    <p>Total Pengaduan</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- PENDING -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.pending }}
+                    </h3>
+
+                    <p>Menunggu Verifikasi</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- DIPROSES -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.diproses }}
+                    </h3>
+
+                    <p>Sedang Diproses</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- SELESAI -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.selesai }}
+                    </h3>
+
+                    <p>Selesai</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- USER -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.total_user }}
+                    </h3>
+
+                    <p>Total User</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- PETUGAS -->
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+
+                <div class="stat-info">
+
+                    <h3>
+                        {{ stats.total_petugas }}
+                    </h3>
+
+                    <p>Total Petugas</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             PENGADUAN TERBARU
+        ========================== -->
+
+        <div class="content-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Pengaduan Terbaru</h2>
+
+                    <p>
+                        Daftar pengaduan terbaru yang masuk ke sistem.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>No</th>
+
+                            <th>ID Tiket</th>
+
+                            <th>Judul Pengaduan</th>
+
+                            <th>Pelapor</th>
+
+                            <th>Status</th>
+
+                            <th>Tanggal</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% if pengaduan_terbaru %}
+
+                            {% for item in pengaduan_terbaru %}
+
+                            <tr>
+
+                                <td>
+                                    {{ loop.index }}
+                                </td>
+
+                                <td>
+                                    TIK-{{ '%04d'|format(item.id) }}
+                                </td>
+
+                                <td>
+                                    {{ item.judul }}
+                                </td>
+
+                                <td>
+                                    {{ item.pelapor or '-' }}
+                                </td>
+
+                                <td>
+
+                                    {% if item.status == 'pending' %}
+
+                                        <span class="status-badge pending">
+                                            Pending
+                                        </span>
+
+                                    {% elif item.status == 'Sedang Diproses' %}
+
+                                        <span class="status-badge proses">
+                                            Sedang Diproses
+                                        </span>
+
+                                    {% elif item.status == 'Selesai' %}
+
+                                        <span class="status-badge selesai">
+                                            Selesai
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge">
+                                            {{ item.status }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ item.created_at }}
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+
+                                <td colspan="6"
+                                    style="text-align:center; padding:30px;">
+
+                                    Belum ada pengaduan.
+
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>        

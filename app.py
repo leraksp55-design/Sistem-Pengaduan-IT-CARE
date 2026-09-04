@@ -54,55 +54,112 @@ def login_required(f):
     return decorated_function
 
 
-# --- ROUTE LOGIN (MEMBACA DATA) ---
+# --- ROUTE LOGIN ---
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+
         username = request.form.get('username')
         password = request.form.get('password')
-        
+
         db = get_db_connection()
         cursor = db.cursor(dictionary=True, buffered=True)
-        
-        cursor.execute('SELECT * FROM users WHERE nama = %s', (username,))
-        user = cursor.fetchone()
-        print("======================")
-        print("USER :", user)
 
-        if user:
-            print("ROLE :", user['role'])
-            print("PASSWORD COCOK :", bcrypt.check_password_hash(user['password'], password))
-        else:
-            print("USER TIDAK DITEMUKAN")
-        print("======================")
-        cursor.close()
-        db.close()
+        try:
+            cursor.execute(
+                'SELECT * FROM users WHERE nama = %s',
+                (username,)
+            )
 
-        # Menggunakan user['password'] sesuai nama kolom di database
-        if user and bcrypt.check_password_hash(user['password'], password):
+            user = cursor.fetchone()
+
+            print("======================")
+            print("USER :", user)
+
+            if user:
+                print("ROLE :", user['role'])
+                print(
+                    "PASSWORD COCOK :",
+                    bcrypt.check_password_hash(
+                        user['password'],
+                        password
+                    )
+                )
+            else:
+                print("USER TIDAK DITEMUKAN")
+
+            print("======================")
+
+        finally:
+            cursor.close()
+            db.close()
+
+        # ==============================
+        # CEK LOGIN
+        # ==============================
+
+        if user and bcrypt.check_password_hash(
+            user['password'],
+            password
+        ):
+
             session['loggedin'] = True
             session['id'] = user['id_user']
             session['username'] = user['nama']
-            session['role'] = user.get('role', 'masyarakat')
-            
-            
-            flash(f'Selamat datang, {user["nama"]}!', 'success')
-            if session['role'] == 'petugas':
-                return redirect(url_for('dashboard_petugas'))
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Username atau Password salah!', 'error')
-    
-    return render_template('login.html')
+            session['role'] = user.get(
+                'role',
+                'masyarakat'
+            )
 
+            flash(
+                f'Selamat datang, {user["nama"]}!',
+                'success'
+            )
+
+            # ==============================
+            # REDIRECT BERDASARKAN ROLE
+            # ==============================
+
+            if session['role'] == 'admin':
+                return redirect(
+                    url_for('dashboard_admin')
+                )
+
+            elif session['role'] == 'petugas':
+                return redirect(
+                    url_for('dashboard_petugas')
+                )
+
+            elif session['role'] == 'masyarakat':
+                return redirect(
+                    url_for('dashboard')
+                )
+
+            else:
+                session.clear()
+                flash(
+                    'Role pengguna tidak dikenali.',
+                    'error'
+                )
+                return redirect(
+                    url_for('login')
+                )
+
+        else:
+            flash(
+                'Username atau Password salah!',
+                'error'
+            )
+
+    return render_template('login.html')
 
 # --- ROUTE REGISTER (MENYIMPAN DATA) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         nama = request.form.get('nama')
-        nik = request.form.get('nik')
+        nip = request.form.get('nip')
         hp = request.form.get('hp')
         password = request.form.get('password')
         setuju = request.form.get('setuju')
@@ -111,7 +168,7 @@ def register():
             flash('Anda harus menyetujui Syarat & Ketentuan!', 'error')
             return redirect(url_for('register'))
 
-        if not nama or not password or not nik or not hp:
+        if not nama or not password or not nip or not hp:
             flash('Semua kolom wajib diisi!', 'error')
             return redirect(url_for('register'))
 
@@ -123,15 +180,15 @@ def register():
         try:
             # Kolom di database Anda bernama 'password'
             cursor.execute('''
-            INSERT INTO users (nama, password, nik, no_hp) 
+            INSERT INTO users (nama, password, nip, no_hp) 
             VALUES (%s, %s, %s, %s)
-            ''', (nama, hashed_password, nik, hp))
+            ''', (nama, hashed_password, nip, hp))
             db.commit() 
             flash('Pendaftaran berhasil! Silakan login.', 'success')
             return redirect(url_for('login'))
             
         except mysql.connector.IntegrityError:
-            flash('NIK atau Nomor HP sudah terdaftar!', 'error')
+            flash('NIP atau Nomor HP sudah terdaftar!', 'error')
             return redirect(url_for('register'))
             
         finally:
@@ -145,7 +202,7 @@ def register():
 def register_petugas():
     if request.method == 'POST':
         nama = request.form.get('nama')
-        nik = request.form.get('nik')
+        nip = request.form.get('nip')
         hp = request.form.get('hp')
         password = request.form.get('password')
         setuju = request.form.get('setuju')
@@ -154,7 +211,7 @@ def register_petugas():
             flash('Anda harus menyetujui Syarat & Ketentuan!', 'error')
             return redirect(url_for('register_petugas'))
 
-        if not nama or not password or not nik or not hp:
+        if not nama or not password or not nip or not hp:
             flash('Semua kolom wajib diisi!', 'error')
             return redirect(url_for('register_petugas'))
 
@@ -172,20 +229,20 @@ def register_petugas():
 
             if has_role:
                 cursor.execute(
-                    'INSERT INTO users (nama, password, nik, no_hp, role) VALUES (%s, %s, %s, %s, %s)',
-                    (nama, hashed_password, nik, hp, 'petugas')
+                    'INSERT INTO users (nama, password, nip, no_hp, role) VALUES (%s, %s, %s, %s, %s)',
+                    (nama, hashed_password, nip, hp, 'petugas')
                 )
             else:
                 cursor.execute(
-                    'INSERT INTO users (nama, password, nik, no_hp) VALUES (%s, %s, %s, %s)',
-                    (nama, hashed_password, nik, hp)
+                    'INSERT INTO users (nama, password, nip, no_hp) VALUES (%s, %s, %s, %s)',
+                    (nama, hashed_password, nip, hp)
                 )
             db.commit()
             flash('Akun petugas berhasil dibuat. Silakan login.', 'success')
             return redirect(url_for('login'))
 
         except mysql.connector.IntegrityError:
-            flash('NIK atau Nomor HP sudah terdaftar!', 'error')
+            flash('NIP atau Nomor HP sudah terdaftar!', 'error')
             return redirect(url_for('register_petugas'))
 
         except Exception as e:
@@ -332,6 +389,482 @@ def dashboard_petugas():
         if db:
             db.close()
 
+# =========================================================
+# DASHBOARD ADMIN
+# =========================================================
+
+@app.route('/dashboard-admin')
+@login_required
+def dashboard_admin():
+
+    # Hanya admin yang boleh masuk
+    if session.get('role') != 'admin':
+        flash('Akses ditolak. Halaman ini hanya untuk admin.', 'error')
+        return redirect(url_for('dashboard'))
+
+    db = None
+    cursor = None
+
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        # ==============================
+        # STATISTIK PENGADUAN
+        # ==============================
+
+        cursor.execute('''
+            SELECT COUNT(*) AS total
+            FROM complaint
+        ''')
+        total_complaint = cursor.fetchone()['total']
+
+        cursor.execute('''
+            SELECT COUNT(*) AS pending
+            FROM complaint
+            WHERE status = %s
+        ''', ('pending',))
+        pending = cursor.fetchone()['pending']
+
+        cursor.execute('''
+            SELECT COUNT(*) AS diproses
+            FROM complaint
+            WHERE status = %s
+        ''', ('Sedang Diproses',))
+        diproses = cursor.fetchone()['diproses']
+
+        cursor.execute('''
+            SELECT COUNT(*) AS selesai
+            FROM complaint
+            WHERE status = %s
+        ''', ('Selesai',))
+        selesai = cursor.fetchone()['selesai']
+
+        # ==============================
+        # JUMLAH USER
+        # ==============================
+
+        cursor.execute('''
+            SELECT COUNT(*) AS total_user
+            FROM users
+            WHERE role = %s
+        ''', ('masyarakat',))
+        total_user = cursor.fetchone()['total_user']
+
+        # ==============================
+        # JUMLAH PETUGAS
+        # ==============================
+
+        cursor.execute('''
+            SELECT COUNT(*) AS total_petugas
+            FROM users
+            WHERE role = %s
+        ''', ('petugas',))
+        total_petugas = cursor.fetchone()['total_petugas']
+
+        # ==============================
+        # PENGADUAN TERBARU
+        # ==============================
+
+        cursor.execute('''
+            SELECT
+                c.id_complaint AS id,
+                c.title AS judul,
+                c.status,
+                c.created_at,
+                u.nama AS pelapor
+            FROM complaint c
+            LEFT JOIN users u
+                ON c.id_user = u.id_user
+            ORDER BY c.created_at DESC
+            LIMIT 5
+        ''')
+
+        pengaduan_terbaru = cursor.fetchall()
+
+        # ==============================
+        # DATA DASHBOARD
+        # ==============================
+
+        stats = {
+            'total_complaint': total_complaint,
+            'pending': pending,
+            'diproses': diproses,
+            'selesai': selesai,
+            'total_user': total_user,
+            'total_petugas': total_petugas,
+            'user_nama': session.get('username')
+        }
+
+        return render_template(
+            'dashboard_admin.html',
+            stats=stats,
+            pengaduan_terbaru=pengaduan_terbaru
+        )
+
+    except Exception as e:
+
+        print('ERROR DASHBOARD ADMIN:', e)
+
+        return f'''
+        <h2>Dashboard Admin Error</h2>
+        <p>{e}</p>
+        '''
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()   
+
+# =========================================================
+# DATA PENGADUAN - ADMIN
+# =========================================================
+
+@app.route('/admin/data-pengaduan')
+@login_required
+def data_pengaduan_admin():
+
+    if session.get('role') != 'admin':
+        flash('Akses ditolak. Halaman ini hanya untuk admin.', 'error')
+        return redirect(url_for('dashboard'))
+
+    db = None
+    cursor = None
+
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute('''
+            SELECT
+                c.id_complaint AS id,
+                c.title AS judul,
+                c.deskripsi,
+                c.lokasi,
+                c.status,
+                c.created_at,
+                u.nama AS pelapor
+            FROM complaint c
+            LEFT JOIN users u
+                ON c.id_user = u.id_user
+            ORDER BY c.created_at DESC
+        ''')
+
+        pengaduan_list = cursor.fetchall()
+
+        return render_template(
+            'data_pengaduan_admin.html',
+            pengaduan_list=pengaduan_list
+        )
+
+    except Exception as e:
+        print('ERROR DATA PENGADUAN ADMIN:', e)
+        return f'<h2>Error</h2><p>{e}</p>'
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()
+
+
+# =========================================================
+# DATA USER - ADMIN
+# =========================================================
+
+@app.route('/admin/data-user')
+@login_required
+def data_user_admin():
+
+    if session.get('role') != 'admin':
+        flash('Akses ditolak. Halaman ini hanya untuk admin.', 'error')
+        return redirect(url_for('dashboard'))
+
+    db = None
+    cursor = None
+
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute('''
+            SELECT
+                id_user,
+                nama,
+                nip,
+                no_hp,
+                role
+            FROM users
+            WHERE role = 'masyarakat'
+            ORDER BY id_user DESC
+        ''')
+
+        user_list = cursor.fetchall()
+
+        return render_template(
+            'data_user_admin.html',
+            user_list=user_list
+        )
+
+    except Exception as e:
+        print('ERROR DATA USER ADMIN:', e)
+        return f'<h2>Error</h2><p>{e}</p>'
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()
+
+
+# =========================================================
+# DATA PETUGAS - ADMIN
+# =========================================================
+
+@app.route('/admin/data-petugas')
+@login_required
+def data_petugas_admin():
+
+    if session.get('role') != 'admin':
+        flash('Akses ditolak. Halaman ini hanya untuk admin.', 'error')
+        return redirect(url_for('dashboard'))
+
+    db = None
+    cursor = None
+
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute('''
+            SELECT
+                id_user,
+                nama,
+                nip,
+                no_hp,
+                role
+            FROM users
+            WHERE role = 'petugas'
+            ORDER BY id_user DESC
+        ''')
+
+        petugas_list = cursor.fetchall()
+
+        return render_template(
+            'data_petugas_admin.html',
+            petugas_list=petugas_list
+        )
+
+    except Exception as e:
+        print('ERROR DATA PETUGAS ADMIN:', e)
+        return f'<h2>Error</h2><p>{e}</p>'
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()   
+
+@app.route('/admin/reset-password')
+@login_required
+def reset_password_admin():
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute('''
+        SELECT id_user, nama, nip, no_hp, role
+        FROM users
+        WHERE role IN ('masyarakat', 'petugas')
+        ORDER BY role ASC, nama ASC
+    ''')
+
+    user_list = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        'reset_password_admin.html',
+        user_list=user_list
+    )
+
+
+@app.route('/admin/reset-password/<int:id>', methods=['POST'])
+@login_required
+def reset_password_user(id):
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    password_baru = request.form.get('password_baru', '').strip()
+
+    if not password_baru:
+        flash('Password baru wajib diisi.', 'danger')
+        return redirect(url_for('reset_password_admin'))
+
+    if len(password_baru) < 6:
+        flash('Password minimal 6 karakter.', 'danger')
+        return redirect(url_for('reset_password_admin'))
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # Pastikan yang diubah hanya User atau Petugas
+    cursor.execute('''
+        SELECT id_user, role
+        FROM users
+        WHERE id_user = %s
+          AND role IN ('masyarakat', 'petugas')
+    ''', (id,))
+
+    user = cursor.fetchone()
+
+    if not user:
+        cursor.close()
+        db.close()
+
+        flash('User tidak ditemukan.', 'danger')
+        return redirect(url_for('reset_password_admin'))
+
+    password_hash = bcrypt.generate_password_hash(
+        password_baru
+    ).decode('utf-8')
+
+    cursor.execute('''
+        UPDATE users
+        SET password = %s
+        WHERE id_user = %s
+    ''', (password_hash, id))
+
+    db.commit()
+
+    cursor.close()
+    db.close()
+
+    flash('Password berhasil direset.', 'success')
+
+    return redirect(url_for('reset_password_admin'))
+
+@app.route('/admin/lokasi')
+@login_required
+def data_lokasi_admin():
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute('''
+        SELECT id_lokasi, nama_lokasi
+        FROM lokasi
+        ORDER BY id_lokasi DESC
+    ''')
+
+    lokasi_list = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return render_template(
+        'lokasi_admin.html',
+        lokasi_list=lokasi_list
+    )
+
+
+@app.route('/admin/lokasi/tambah', methods=['POST'])
+@login_required
+def tambah_lokasi_admin():
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    nama_lokasi = request.form.get('nama_lokasi', '').strip()
+
+    if not nama_lokasi:
+        flash('Nama lokasi wajib diisi.', 'danger')
+        return redirect(url_for('data_lokasi_admin'))
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute(
+        'INSERT INTO lokasi (nama_lokasi) VALUES (%s)',
+        (nama_lokasi,)
+    )
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+    flash('Lokasi berhasil ditambahkan.', 'success')
+    return redirect(url_for('data_lokasi_admin'))
+
+
+@app.route('/admin/lokasi/edit/<int:id>', methods=['POST'])
+@login_required
+def edit_lokasi_admin(id):
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    nama_lokasi = request.form.get('nama_lokasi', '').strip()
+
+    if not nama_lokasi:
+        flash('Nama lokasi wajib diisi.', 'danger')
+        return redirect(url_for('data_lokasi_admin'))
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute(
+        '''
+        UPDATE lokasi
+        SET nama_lokasi = %s
+        WHERE id_lokasi = %s
+        ''',
+        (nama_lokasi, id)
+    )
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+    flash('Lokasi berhasil diperbarui.', 'success')
+    return redirect(url_for('data_lokasi_admin'))
+
+
+@app.route('/admin/lokasi/hapus/<int:id>', methods=['POST'])
+@login_required
+def hapus_lokasi_admin(id):
+    if session.get('role') != 'admin':
+        flash('Anda tidak memiliki akses ke halaman ini.', 'danger')
+        return redirect(url_for('login'))
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute(
+        'DELETE FROM lokasi WHERE id_lokasi = %s',
+        (id,)
+    )
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+    flash('Lokasi berhasil dihapus.', 'success')
+    return redirect(url_for('data_lokasi_admin'))               
 
 # --- ROUTE LIST PENGADUAN UNTUK PETUGAS (VERIFICATION) ---
 @app.route('/verification-laporan')
@@ -423,6 +956,7 @@ def daftar_pengaduan_petugas():
         return render_template('daftar_pengaduan_petugas.html', pengaduan_list=data)
     except Exception as e:
         return f"<h2>Error</h2><p>{e}</p>"
+    
 
 
 @app.route('/detail-pengaduan-petugas/<int:id>', methods=['GET', 'POST'])
@@ -614,12 +1148,15 @@ def detail_pengaduan(id):
 def edit_pengaduan(id):
     flash('Fitur edit pengaduan sedang dalam pengembangan.', 'info')
     return redirect(url_for('pengaduan_saya'))
-
 # --- ROUTE FORM PENGADUAN ---
 
 @app.route('/form-pengaduan', methods=['GET', 'POST'])
 @login_required
 def form_pengaduan():
+
+    # ==================================================
+    # JIKA FORM DI-SUBMIT
+    # ==================================================
 
     if request.method == 'POST':
 
@@ -630,24 +1167,19 @@ def form_pengaduan():
         judul = request.form.get('title')
         deskripsi = request.form.get('deskripsi')
 
+
         # ==============================
         # DATA LOKASI
         # ==============================
 
-        provinsi = request.form.get('provinsi')
-        kabupaten = request.form.get('kabupaten')
-        universitas = request.form.get('universitas')
+        lokasi = request.form.get('lokasi')
         alamat_detail = request.form.get('alamat_detail')
 
-        # Gabungkan menjadi satu lokasi
-        lokasi = (
-            f"{universitas}, "
-            f"{kabupaten}, "
-            f"{provinsi}"
-        )
 
+        # Gabungkan lokasi dengan alamat detail
         if alamat_detail:
-            lokasi += f" - {alamat_detail}"
+            lokasi = f"{lokasi} - {alamat_detail}"
+
 
         # ==============================
         # FILE HANDLING
@@ -656,8 +1188,10 @@ def form_pengaduan():
         uploaded_file = request.files.get('file')
         saved_filename = ''
 
+
         db = get_db_connection()
         cursor = db.cursor()
+
 
         try:
 
@@ -702,7 +1236,9 @@ def form_pengaduan():
                 category_id
             ))
 
+
             db.commit()
+
 
             inserted_id = cursor.lastrowid
 
@@ -717,7 +1253,9 @@ def form_pengaduan():
                     uploaded_file.filename
                 )
 
+
                 name, ext = os.path.splitext(filename)
+
 
                 new_filename = (
                     f"{inserted_id}_"
@@ -725,19 +1263,25 @@ def form_pengaduan():
                     f"{ext}"
                 )
 
+
                 file_path = os.path.join(
                     app.config['UPLOAD_FOLDER'],
                     new_filename
                 )
 
+
                 uploaded_file.save(file_path)
+
 
                 saved_filename = (
                     f"image/uploads/{new_filename}"
                 )
 
 
-                # Update attachment
+                # ==============================
+                # UPDATE ATTACHMENT
+                # ==============================
+
                 cursor.execute(
                     '''
                     UPDATE complaint
@@ -750,6 +1294,7 @@ def form_pengaduan():
                     )
                 )
 
+
                 db.commit()
 
 
@@ -757,6 +1302,7 @@ def form_pengaduan():
                 'Pengaduan berhasil dikirim!',
                 'success'
             )
+
 
             return redirect(
                 url_for('pengaduan_saya')
@@ -767,15 +1313,18 @@ def form_pengaduan():
 
             db.rollback()
 
+
             print(
                 'Error inserting pengaduan:',
                 e
             )
 
+
             flash(
                 f'Gagal mengirim pengaduan: {e}',
                 'error'
             )
+
 
             return redirect(
                 url_for('form_pengaduan')
@@ -788,61 +1337,44 @@ def form_pengaduan():
             db.close()
 
 
-    return render_template(
-        'form_pengaduan.html'
-    )
+    # ==================================================
+    # AMBIL DATA LOKASI DARI DATABASE
+    # ==================================================
 
-@app.route('/api/universitas')
-def api_universitas():
+    db = get_db_connection()
 
-    import requests
+    cursor = db.cursor(dictionary=True)
 
-    kabupaten = request.args.get('kabupaten', '').strip()
-
-    if not kabupaten:
-        return jsonify({
-            "success": False,
-            "message": "Kabupaten/Kota tidak boleh kosong",
-            "data": []
-        }), 400
 
     try:
 
-        url = "https://api-frontend.kemdikbud.go.id/hit_kampus"
+        cursor.execute('''
+            SELECT
+                id_lokasi,
+                nama_lokasi
+            FROM lokasi
+            ORDER BY id_lokasi ASC
+        ''')
 
-        response = requests.get(
-            url,
-            params={
-                "keyword": kabupaten
-            },
-            timeout=15
-        )
 
-        response.raise_for_status()
+        lokasi = cursor.fetchall()
 
-        data = response.json()
 
-        return jsonify(data)
+    finally:
 
-    except requests.exceptions.RequestException as e:
+        cursor.close()
+        db.close()
 
-        print("ERROR API UNIVERSITAS:", e)
 
-        return jsonify({
-            "success": False,
-            "message": "Gagal mengambil data universitas",
-            "data": []
-        }), 500
+    # ==================================================
+    # TAMPILKAN FORM
+    # ==================================================
 
-    except Exception as e:
+    return render_template(
+        'form_pengaduan.html',
+        lokasi=lokasi
+    )
 
-        print("ERROR UNIVERSITAS:", e)
-
-        return jsonify({
-            "success": False,
-            "message": str(e),
-            "data": []
-        }), 500
 
 # --- ROUTE TAMBAHAN (Fix Error Sebelumnya) ---
 @app.route('/logout')
@@ -984,7 +1516,7 @@ def export_riwayat_excel():
 
         for col, header in enumerate(headers, start=1):
             cell = sheet.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True)
+            cell.font =  Font(bold=True)
             cell.alignment = Alignment(horizontal='center')
 
         # Data
@@ -1035,11 +1567,11 @@ def export_riwayat_excel():
 @login_required
 def download_riwayat_pdf(id):
 
-    try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.lib.units import cm
+    try: 
+        from   eportlab.lib.pagesizes import A4
+        from   eportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from   reportlab.lib.styles import getSampleStyleSheet
+        from   reportlab.lib.units import cm
         from flask import send_file
         from io import BytesIO
 

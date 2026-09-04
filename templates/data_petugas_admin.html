@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Data Petugas - IT CARE</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+</head>
+
+
+<body class="admin-page">
+<div class="dashboard-container">
+
+
+    <aside class="sidebar">
+
+
+        <div class="sidebar-logo">
+
+            <h2>
+                <i class="fas fa-headset"></i>
+                IT CARE
+            </h2>
+
+            <span>Admin Panel</span>
+
+        </div>
+
+
+        <nav class="sidebar-menu">
+
+            <a href="{{ url_for('dashboard_admin') }}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('data_pengaduan_admin') }}">
+                <i class="fas fa-file-alt"></i>
+                <span>Data Pengaduan</span>
+            </a>
+
+            <a href="{{ url_for('data_user_admin') }}">
+                <i class="fas fa-users"></i>
+                <span>Data User</span>
+            </a>
+
+            <a href="{{ url_for('data_petugas_admin') }}"
+               class="active">
+                <i class="fas fa-user-shield"></i>
+                <span>Data Petugas</span>
+            </a>
+
+            <a href="{{ url_for('data_lokasi_admin') }}">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Lokasi</span>
+            </a>
+
+            <a href="{{ url_for('reset_password_admin') }}">
+                <i class="fas fa-key"></i>
+                <span>Reset Password</span>
+            </a>
+
+        </nav>
+
+
+        <!-- LOGOUT -->
+
+        <div class="sidebar-bottom">
+
+            <a href="{{ url_for('logout') }}">
+
+                <i class="fas fa-sign-out-alt"></i>
+
+                <span>Logout</span>
+
+            </a>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- HEADER -->
+
+        <div class="content-header">
+
+
+            <div>
+
+                <h1>Data Petugas</h1>
+
+                <p>
+                    Kelola data petugas yang bertugas menangani pengaduan.
+                </p>
+
+            </div>
+
+
+            <!-- WELCOME -->
+
+            <div class="welcome-box">
+
+                <i class="fas fa-user-shield"></i>
+
+                <span>
+
+                    Selamat Datang,
+                    {{ session.get('username', 'Admin') }} 👋
+
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             DATA PETUGAS
+        ================================================== -->
+
+        <div class="content-card">
+
+
+            <div class="card-header">
+
+
+                <div>
+
+                    <h2>Daftar Petugas</h2>
+
+                    <p>
+                        Daftar petugas yang terdaftar dalam sistem IT CARE.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- TABLE -->
+
+            <div class="table-container">
+
+
+                <table>
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>No</th>
+
+                            <th>Nama Petugas</th>
+
+                            <th>NIP</th>
+
+                            <th>No. HP</th>
+
+                            <th>Role</th>
+
+                        </tr>
+
+                    </thead>
+
+
+
+                    <tbody>
+
+
+                        {% if petugas_list %}
+
+
+                            {% for petugas in petugas_list %}
+
+
+                            <tr>
+
+
+                                <td>
+                                    {{ loop.index }}
+                                </td>
+
+
+                                <td>
+                                    {{ petugas.nama }}
+                                </td>
+
+
+                                <td>
+                                    {{ petugas.nip or '-' }}
+                                </td>
+
+
+                                <td>
+                                    {{ petugas.no_hp or '-' }}
+                                </td>
+
+
+                                <td>
+
+                                    <span class="status-badge">
+
+                                        <i class="fas fa-user-shield"
+                                           style="margin-right:6px;">
+                                        </i>
+
+                                        {{ petugas.role }}
+
+                                    </span>
+
+                                </td>
+
+
+                            </tr>
+
+
+                            {% endfor %}
+
+
+                        {% else %}
+
+
+                            <tr>
+
+
+                                <td colspan="5"
+                                    style="text-align:center; padding:35px;">
+
+
+                                    <i class="fas fa-user-shield"
+                                       style="font-size:32px; margin-bottom:12px; display:block;">
+                                    </i>
+
+
+                                    Belum ada data petugas.
+
+
+                                </td>
+
+
+                            </tr>
+
+
+                        {% endif %}
+
+
+                    </tbody>
+
+
+                </table>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+</div>
+
+
+</body>
+
+</html>

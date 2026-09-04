@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lokasi - IT CARE</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+</head>
+
+<body class="admin-page">
+
+<div class="dashboard-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <h2>
+                <i class="fas fa-headset"></i>
+                IT CARE
+            </h2>
+
+            <span>Admin Panel</span>
+        </div>
+
+        <nav class="sidebar-menu">
+
+            <a href="{{ url_for('dashboard_admin') }}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('data_pengaduan_admin') }}">
+                <i class="fas fa-file-alt"></i>
+                <span>Data Pengaduan</span>
+            </a>
+
+            <a href="{{ url_for('data_user_admin') }}">
+                <i class="fas fa-users"></i>
+                <span>Data User</span>
+            </a>
+
+            <a href="{{ url_for('data_petugas_admin') }}">
+                <i class="fas fa-user-shield"></i>
+                <span>Data Petugas</span>
+            </a>
+
+            <a href="{{ url_for('data_lokasi_admin') }}" class="active">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Lokasi</span>
+            </a>
+
+            <a href="{{ url_for('reset_password_admin') }}">
+                <i class="fas fa-key"></i>
+                <span>Reset Password</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <a href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <div class="content-header">
+
+            <div>
+                <h1>Data Lokasi</h1>
+
+                <p>
+                    Kelola lokasi yang tersedia pada sistem IT CARE.
+                </p>
+            </div>
+
+            <div class="welcome-box">
+
+                <i class="fas fa-user-shield"></i>
+
+                <span>
+                    Selamat Datang,
+                    {{ session.get('username', 'Admin') }} 👋
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- FORM TAMBAH LOKASI -->
+        <div class="content-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Tambah Lokasi</h2>
+
+                    <p>
+                        Tambahkan lokasi baru untuk digunakan pada form pengaduan.
+                    </p>
+                </div>
+
+            </div>
+
+            <form action="{{ url_for('tambah_lokasi_admin') }}"
+                  method="POST"
+                  style="display:flex; gap:15px; align-items:end;">
+
+                <div class="form-group" style="flex:1;">
+
+                    <label class="form-label">
+                        Nama Lokasi
+                    </label>
+
+                    <input type="text"
+                           name="nama_lokasi"
+                           class="form-input"
+                           placeholder="Contoh: Gedung Laboratorium"
+                           required>
+
+                </div>
+
+                <button type="submit"
+                        class="btn-primary"
+                        style="height:45px;">
+
+                    <i class="fas fa-plus"></i>
+                    Tambah Lokasi
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- DAFTAR LOKASI -->
+        <div class="content-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Daftar Lokasi</h2>
+
+                    <p>
+                        Lokasi yang tersedia pada sistem.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>No</th>
+
+                            <th>Nama Lokasi</th>
+
+                            <th>Aksi</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% if lokasi_list %}
+
+                            {% for item in lokasi_list %}
+
+                            <tr>
+
+                                <td>
+                                    {{ loop.index }}
+                                </td>
+
+                                <td>
+                                    {{ item.nama_lokasi }}
+                                </td>
+
+                                <td>
+
+                                    <button type="button"
+                                            class="btn-primary"
+                                            onclick="editLokasi(
+                                                '{{ item.id_lokasi }}',
+                                                '{{ item.nama_lokasi }}'
+                                            )">
+
+                                        <i class="fas fa-edit"></i>
+                                        Edit
+
+                                    </button>
+
+
+                                    <form action="{{ url_for('hapus_lokasi_admin', id=item.id_lokasi) }}"
+                                          method="POST"
+                                          style="display:inline;">
+
+                                        <button type="submit"
+                                                class="btn-danger"
+                                                onclick="return confirm('Yakin ingin menghapus lokasi ini?')">
+
+                                            <i class="fas fa-trash"></i>
+                                            Hapus
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+
+                                <td colspan="3"
+                                    style="text-align:center; padding:30px;">
+
+                                    Belum ada lokasi.
+
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- MODAL EDIT LOKASI -->
+<div id="editModal"
+     style="display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.5);
+            align-items:center;
+            justify-content:center;
+            z-index:9999;">
+
+    <div style="background:white;
+                width:450px;
+                max-width:90%;
+                padding:25px;
+                border-radius:18px;">
+
+        <h2 style="margin-bottom:20px;">
+            Edit Lokasi
+        </h2>
+
+        <form id="editForm"
+              method="POST">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Nama Lokasi
+                </label>
+
+                <input type="text"
+                       id="editNamaLokasi"
+                       name="nama_lokasi"
+                       class="form-input"
+                       required>
+
+            </div>
+
+            <div style="display:flex;
+                        justify-content:flex-end;
+                        gap:10px;
+                        margin-top:20px;">
+
+                <button type="button"
+                        onclick="tutupModal()"
+                        class="btn-secondary">
+
+                    Batal
+
+                </button>
+
+                <button type="submit"
+                        class="btn-primary">
+
+                    <i class="fas fa-save"></i>
+                    Simpan
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function editLokasi(id, nama) {
+
+    document.getElementById('editModal').style.display = 'flex';
+
+    document.getElementById('editNamaLokasi').value = nama;
+
+    document.getElementById('editForm').action =
+        '/admin/lokasi/edit/' + id;
+}
+
+
+function tutupModal() {
+
+    document.getElementById('editModal').style.display = 'none';
+
+}
+
+</script>
+
+</body>
+</html>
