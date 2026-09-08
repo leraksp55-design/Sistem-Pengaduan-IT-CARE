@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,21 +17,27 @@
           rel="stylesheet">
 </head>
 
+
 <body class="admin-page">
 
 <div class="dashboard-container">
 
-    <!-- SIDEBAR -->
+
+    <!-- ================= SIDEBAR ================= -->
+
     <aside class="sidebar">
 
         <div class="sidebar-logo">
+
             <h2>
                 <i class="fas fa-headset"></i>
                 IT CARE
             </h2>
 
             <span>Admin Panel</span>
+
         </div>
+
 
         <nav class="sidebar-menu">
 
@@ -39,39 +46,57 @@
                 <span>Dashboard</span>
             </a>
 
+
             <a href="{{ url_for('data_pengaduan_admin') }}"
                class="active">
+
                 <i class="fas fa-file-alt"></i>
                 <span>Data Pengaduan</span>
+
             </a>
+
 
             <a href="{{ url_for('data_user_admin') }}">
+
                 <i class="fas fa-users"></i>
                 <span>Data User</span>
+
             </a>
+
 
             <a href="{{ url_for('data_petugas_admin') }}">
+
                 <i class="fas fa-user-shield"></i>
                 <span>Data Petugas</span>
+
             </a>
+
 
             <a href="{{ url_for('data_lokasi_admin') }}">
+
                 <i class="fas fa-map-marker-alt"></i>
                 <span>Lokasi</span>
+
             </a>
 
+
             <a href="{{ url_for('reset_password_admin') }}">
+
                 <i class="fas fa-key"></i>
                 <span>Reset Password</span>
+
             </a>
 
         </nav>
 
+
         <div class="sidebar-bottom">
 
             <a href="{{ url_for('logout') }}">
+
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
+
             </a>
 
         </div>
@@ -79,19 +104,26 @@
     </aside>
 
 
-    <!-- MAIN CONTENT -->
+
+    <!-- ================= MAIN CONTENT ================= -->
+
     <main class="main-content">
 
+
         <!-- HEADER -->
+
         <div class="content-header">
 
             <div>
+
                 <h1>Data Pengaduan</h1>
 
                 <p>
                     Kelola seluruh data pengaduan yang masuk ke sistem IT CARE.
                 </p>
+
             </div>
+
 
             <div class="welcome-box">
 
@@ -107,27 +139,36 @@
         </div>
 
 
-        <!-- CONTENT CARD -->
+
+        <!-- ================= CONTENT CARD ================= -->
+
         <div class="content-card">
+
 
             <div class="card-header">
 
                 <div>
+
                     <h2>Daftar Pengaduan</h2>
 
                     <p>
                         Seluruh laporan pengaduan dari user.
                     </p>
+
                 </div>
 
             </div>
 
+
+
+            <!-- ================= TABLE ================= -->
 
             <div class="table-container">
 
                 <table>
 
                     <thead>
+
                         <tr>
 
                             <th>No</th>
@@ -144,106 +185,301 @@
 
                             <th>Tanggal</th>
 
+                            <th>Petugas</th>
+
                         </tr>
+
                     </thead>
+
 
 
                     <tbody>
 
+
                         {% if pengaduan_list %}
+
 
                             {% for item in pengaduan_list %}
 
+
                             <tr>
 
+
+                                <!-- NO -->
+
                                 <td>
+
                                     {{ loop.index }}
+
                                 </td>
 
+
+
+                                <!-- ID TIKET -->
+
                                 <td>
+
                                     TIK-{{ '%04d'|format(item.id) }}
+
                                 </td>
 
+
+
+                                <!-- JUDUL -->
+
                                 <td>
+
                                     {{ item.judul }}
+
                                 </td>
 
+
+
+                                <!-- PELAPOR -->
+
                                 <td>
+
                                     {{ item.pelapor or '-' }}
+
                                 </td>
 
+
+
+                                <!-- LOKASI -->
+
                                 <td>
+
                                     {{ item.lokasi or '-' }}
+
                                 </td>
 
+
+
+                                <!-- STATUS -->
+
                                 <td>
+
 
                                     {% if item.status == 'pending' %}
 
+
                                         <span class="status-badge pending">
+
                                             Pending
+
                                         </span>
+
 
                                     {% elif item.status == 'Sedang Diproses' %}
 
+
                                         <span class="status-badge proses">
+
                                             Sedang Diproses
+
                                         </span>
+
 
                                     {% elif item.status == 'Selesai' %}
 
+
                                         <span class="status-badge selesai">
+
                                             Selesai
+
                                         </span>
+
 
                                     {% else %}
 
+
                                         <span class="status-badge">
+
                                             {{ item.status }}
+
                                         </span>
+
 
                                     {% endif %}
 
+
                                 </td>
+
+
+
+                                <!-- TANGGAL -->
 
                                 <td>
+
                                     {{ item.created_at }}
+
                                 </td>
 
+
+
+                                <!-- ================= PETUGAS ================= -->
+
+                                <td>
+
+
+                                    {% if item.assigned_to %}
+
+
+                                        <!-- SUDAH DITUGASKAN -->
+
+                                        {% for petugas in petugas_list %}
+
+
+                                            {% if item.assigned_to == petugas.id_user %}
+
+
+                                                <span style="
+                                                    display: inline-block;
+                                                    padding: 8px 12px;
+                                                    background: #e8f5e9;
+                                                    color: #2e7d32;
+                                                    border-radius: 6px;
+                                                    font-weight: 600;
+                                                ">
+
+                                                    <i class="fas fa-user-check"></i>
+
+                                                    {{ petugas.nama }}
+
+                                                </span>
+
+
+                                                <br>
+
+
+                                                <span style="
+                                                    font-size: 12px;
+                                                    color: #2e7d32;
+                                                ">
+
+                                                    Telah Ditugaskan
+
+                                                </span>
+
+
+                                            {% endif %}
+
+
+                                        {% endfor %}
+
+
+                                    {% else %}
+
+
+                                        <!-- BELUM DITUGASKAN -->
+
+                                        <form method="POST"
+                                              action="{{ url_for('tugaskan_petugas', id=item.id) }}">
+
+
+                                            <select name="petugas" required>
+
+
+                                                <option value="">
+
+                                                    Pilih Petugas
+
+                                                </option>
+
+
+                                                {% for petugas in petugas_list %}
+
+
+                                                    <option value="{{ petugas.id_user }}">
+
+                                                        {{ petugas.nama }}
+
+                                                    </option>
+
+
+                                                {% endfor %}
+
+
+                                            </select>
+
+
+
+                                            <button type="submit">
+
+                                                <i class="fas fa-user-plus"></i>
+
+                                                Tugaskan
+
+                                            </button>
+
+
+                                        </form>
+
+
+                                    {% endif %}
+
+
+                                </td>
+
+
                             </tr>
+
 
                             {% endfor %}
 
+
                         {% else %}
+
+
+                            <!-- TIDAK ADA DATA -->
 
                             <tr>
 
-                                <td colspan="7"
+
+                                <td colspan="8"
                                     style="text-align:center; padding:30px;">
 
+
                                     <i class="fas fa-inbox"
-                                       style="font-size:30px; margin-bottom:10px; display:block;">
+                                       style="
+                                           font-size:30px;
+                                           margin-bottom:10px;
+                                           display:block;
+                                       ">
+
                                     </i>
+
 
                                     Belum ada data pengaduan.
 
+
                                 </td>
+
 
                             </tr>
 
+
                         {% endif %}
+
 
                     </tbody>
 
+
                 </table>
+
 
             </div>
 
+
         </div>
+
 
     </main>
 
+
 </div>
 
+
 </body>
+
 </html>
